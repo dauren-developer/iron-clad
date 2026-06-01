@@ -15,8 +15,9 @@
 
     <!-- LEFT: Player -->
     <div class="setup-panel" id="panel-player">
+      <div class="panel-inner">
       <div class="panel-header player-header">
-        <span class="panel-tag">ИГРОК</span>
+        <div class="panel-tag">⚔ Игрок</div>
         <h2>Выбери фракцию</h2>
       </div>
 
@@ -76,12 +77,30 @@
         <div id="player-unit-btns" class="unit-btns"></div>
         <div id="player-squads" class="squads-list"></div>
       </div>
+      </div>
     </div>
 
     <!-- CENTER: VS -->
     <div class="vs-center">
       <div class="vs-title">IRON CLAD</div>
-      <div class="vs-badge">VS</div>
+      <div class="vs-eagle">
+        <svg viewBox="0 0 100 100" width="70" height="70" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="50" cy="56" rx="10" ry="14" fill="currentColor" opacity="0.9"/>
+          <circle cx="50" cy="36" r="7" fill="currentColor"/>
+          <path d="M57 37 L64 40 L57 41 Z" fill="currentColor"/>
+          <path d="M46 30 L50 22 L54 30" fill="currentColor" opacity="0.7"/>
+          <path d="M40 50 Q20 38 8 44 Q18 52 26 56 Q34 58 40 56 Z" fill="currentColor" opacity="0.85"/>
+          <path d="M40 56 Q28 62 14 66 Q22 68 30 65 Q38 62 40 58 Z" fill="currentColor" opacity="0.6"/>
+          <path d="M60 50 Q80 38 92 44 Q82 52 74 56 Q66 58 60 56 Z" fill="currentColor" opacity="0.85"/>
+          <path d="M60 56 Q72 62 86 66 Q78 68 70 65 Q62 62 60 58 Z" fill="currentColor" opacity="0.6"/>
+          <path d="M44 70 L46 82 L50 76 L54 82 L56 70 L50 72 Z" fill="currentColor" opacity="0.7"/>
+          <path d="M46 70 L42 78 M46 70 L44 80 M54 70 L58 78 M54 70 L56 80" stroke="currentColor" stroke-width="1.5" fill="none" opacity="0.8"/>
+          <circle cx="52" cy="34" r="2" fill="#c0392b"/>
+          <circle cx="52.5" cy="33.5" r="0.7" fill="#0c0a07"/>
+          <path d="M46 52 L50 50 L54 52 L54 60 L50 64 L46 60 Z" fill="none" stroke="rgba(201,151,58,0.4)" stroke-width="0.8"/>
+        </svg>
+      </div>
+      <div class="vs-divider"><span class="vs-divider-icon">⚔ · ⚔</span></div>
       <div class="budget-badge">💰 150 монет</div>
       <button class="start-btn" id="start-btn" onclick="startPlacement()" disabled>
         В БОЙ →
@@ -91,8 +110,9 @@
 
     <!-- RIGHT: Bot -->
     <div class="setup-panel" id="panel-bot">
+      <div class="panel-inner">
       <div class="panel-header bot-header">
-        <span class="panel-tag">БОТ</span>
+        <div class="panel-tag">🔱 Противник</div>
         <h2>Выбери фракцию</h2>
       </div>
 
@@ -152,6 +172,7 @@
         <div id="bot-unit-btns" class="unit-btns"></div>
         <div id="bot-squads" class="squads-list"></div>
       </div>
+      </div>
     </div>
 
   </div>
@@ -163,11 +184,13 @@
 
     <div class="battle-sidebar left-sidebar">
       <div class="sidebar-title">🛡 ИГРОК</div>
+      <div class="sidebar-inner">
       <div class="sidebar-faction" id="deploy-player-faction"></div>
-      <div class="sidebar-label">Выбери отряд → кликни на нужную зону карты</div>
+      <div class="sidebar-label">Выбери отряд → кликни зону карты</div>
       <div id="deploy-player-units" class="sidebar-units"></div>
-      <div class="sidebar-label" style="margin-top:12px">Размещено:</div>
+      <div class="sidebar-label" style="margin-top:10px">Размещено:</div>
       <div id="deploy-placed-list" class="sidebar-units"></div>
+      </div>
     </div>
 
     <div class="canvas-wrap">
@@ -178,13 +201,15 @@
 
     <div class="battle-sidebar right-sidebar">
       <div class="sidebar-title">⚔ БОТ</div>
+      <div class="sidebar-inner">
       <div class="sidebar-faction" id="deploy-bot-faction"></div>
-      <div class="sidebar-label">Отряды бота (видимы):</div>
+      <div class="sidebar-label">Отряды противника:</div>
       <div id="deploy-bot-units" class="sidebar-units"></div>
       <div style="margin-top: auto; padding-top: 20px;">
         <button class="action-btn" id="deploy-start-btn" onclick="startPlanning()" disabled>
           📋 ПЛАН АТАКИ →
         </button>
+      </div>
       </div>
     </div>
 
@@ -197,6 +222,7 @@
 
     <div class="battle-sidebar left-sidebar">
       <div class="sidebar-title">🛡 ИГРОК</div>
+      <div class="sidebar-inner">
       <div class="sidebar-faction" id="battle-player-faction"></div>
       <div id="battle-player-units" class="sidebar-units"></div>
       <div class="sidebar-divider"></div>
@@ -207,8 +233,9 @@
         <div class="hint-row"><kbd>3</kbd> клик на поле — переместить</div>
       </div>
       <div class="sidebar-divider"></div>
-      <div class="sidebar-label">Лог боя:</div>
+      <div class="sidebar-label">Летопись боя:</div>
       <div id="battle-log" class="battle-log"></div>
+      </div>
     </div>
 
     <div class="canvas-wrap">
@@ -218,10 +245,12 @@
 
     <div class="battle-sidebar right-sidebar">
       <div class="sidebar-title">⚔ БОТ</div>
+      <div class="sidebar-inner">
       <div class="sidebar-faction" id="battle-bot-faction"></div>
       <div id="battle-bot-units" class="sidebar-units"></div>
       <div style="margin-top:auto; padding-top:20px;">
         <button class="action-btn danger-btn" onclick="surrenderBattle()">🏳 Сдаться</button>
+      </div>
       </div>
     </div>
 
@@ -232,11 +261,15 @@
 <div id="screen-result" class="screen">
   <div class="result-wrap">
     <div class="result-card" id="result-card">
-      <div class="result-icon" id="result-icon">🏆</div>
-      <div class="result-title" id="result-title">ПОБЕДА</div>
-      <div class="result-sub" id="result-sub">Великолепная тактика!</div>
+      <div class="result-top">
+        <div class="result-icon" id="result-icon">🏆</div>
+        <div class="result-title" id="result-title">VICTORY</div>
+        <div class="result-sub" id="result-sub">Великолепная тактика!</div>
+      </div>
       <div class="result-stats" id="result-stats"></div>
-      <button class="action-btn" onclick="restartGame()">↩ НОВАЯ ИГРА</button>
+      <div class="result-actions">
+        <button class="action-btn" onclick="restartGame()">↩ НОВАЯ ИГРА</button>
+      </div>
     </div>
   </div>
 </div>

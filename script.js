@@ -19,7 +19,7 @@ function playSound(type) {
     g.connect(ac.destination);
 
     if (type === 'sword') {
-      // Металлический удар мечом
+      // Metallic sword strike
       const buf = ac.createBuffer(1, ac.sampleRate * 0.18, ac.sampleRate);
       const d = buf.getChannelData(0);
       for (let i = 0; i < d.length; i++) {
@@ -33,7 +33,7 @@ function playSound(type) {
       src.connect(g); src.start(now);
 
     } else if (type === 'arrow') {
-      // Свист стрелы
+      // Arrow whistle
       const osc = ac.createOscillator();
       osc.type = 'sawtooth';
       osc.frequency.setValueAtTime(1200, now);
@@ -43,7 +43,7 @@ function playSound(type) {
       osc.connect(g); osc.start(now); osc.stop(now + 0.15);
 
     } else if (type === 'cavalry') {
-      // Топот копыт — несколько ударов
+      // Hoofbeats — multiple strikes
       for (let k = 0; k < 3; k++) {
         const t0 = now + k * 0.08;
         const buf = ac.createBuffer(1, ac.sampleRate * 0.08, ac.sampleRate);
@@ -61,7 +61,7 @@ function playSound(type) {
       return;
 
     } else if (type === 'death') {
-      // Глухой удар + спад
+      // Dull thud + fade
       const buf = ac.createBuffer(1, ac.sampleRate * 0.35, ac.sampleRate);
       const d = buf.getChannelData(0);
       for (let i = 0; i < d.length; i++) {
@@ -74,7 +74,7 @@ function playSound(type) {
       src.connect(g); src.start(now);
 
     } else if (type === 'victory') {
-      // Фанфара — восходящий трезвучный аккорд
+      // Fanfare — ascending chord
       const notes = [523, 659, 784, 1047];
       notes.forEach((freq, i) => {
         const t0 = now + i * 0.13;
@@ -91,7 +91,7 @@ function playSound(type) {
       return;
 
     } else if (type === 'defeat') {
-      // Нисходящий тон поражения
+      // Descending defeat tone
       const osc = ac.createOscillator();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(440, now);
@@ -103,7 +103,7 @@ function playSound(type) {
   } catch(e) {}
 }
 
-// ── PARTICLE SYSTEM (дым / конфетти) ──────────────────
+// ── PARTICLE SYSTEM (smoke / confetti) ──────────────────
 let particles = [];
 
 function spawnSmokeAt(px, py) {
@@ -202,14 +202,17 @@ function runVictoryLoop() {
   const dt = 16;
   updateParticles(dt);
 
-  // Every ~400ms spawn new confetti
   if (Math.floor(elapsed / 400) > Math.floor((elapsed - dt) / 400)) {
     victoryAnim.squads.forEach(sq => {
       spawnVictoryConfetti(sq.cx() * CELL, sq.cy() * CELL);
     });
   }
 
-  drawSim(0);  // redraw with particles
+  // Only draw if battle canvas is still active
+  const bc = document.getElementById('battleCanvas');
+  if (bc && document.getElementById('screen-battle').classList.contains('active')) {
+    drawSim(0);
+  }
   requestAnimationFrame(runVictoryLoop);
 }
 
@@ -222,7 +225,7 @@ const SQUAD_COLS      = 3;
 const ATTACK_INTERVAL = 1400;   // ms between attacks
 const BOT_THINK_MS    = 2400;   // ms between bot re-decisions
 const BATTLE_DURATION = 5 * 60 * 1000;
-const SPD_SCALE       = 0.0009; // cells/ms  (пехота ~25s через карту)
+const SPD_SCALE       = 0.0009; // cells/ms  (infantry ~25s across map)
 
 const UNIT_BASE = {
   Swordsman:{ hp:400,  atk:12, arm_m:20, arm_r:10, spd:1.8, rng:1, aspd:1.0, symbol:'⚔', color:'#5c9eff', label:'Мечник',     cost:15 },
@@ -436,7 +439,7 @@ function renderRoster(side) {
   const ok = G.playerRoster.length >= MIN_SQUADS && G.botRoster.length >= MIN_SQUADS;
   document.getElementById('start-btn').disabled = !ok;
   document.getElementById('start-hint').textContent =
-    ok ? 'Готово! Нажми В БОЙ' : `Набери минимум ${MIN_SQUADS} отрядов каждой стороне`;
+    ok ? 'Готово! Нажми В БОЙ' : `Recruit at least ${MIN_SQUADS} squads per side`;
 }
 
 function renderUnitButtons(side, faction, coins, roster) {
@@ -604,7 +607,7 @@ function updatePlanBtnVisibility() {
   btn.disabled = playerPlaced === 0;
   btn.textContent = allPlaced
     ? '📋 ПЛАН АТАКИ →'
-    : `📋 ПЛАН АТАКИ (${playerPlaced}/${G.playerRoster.length} своих, ${botPlaced}/${G.botRoster.length} бота)`;
+    : `📋 ATTACK PLAN (${playerPlaced}/${G.playerRoster.length} своих, ${botPlaced}/${G.botRoster.length} бота)`;
 }
 
 // ═══════════════════════════════════════════════════════
@@ -634,7 +637,7 @@ function startPlanning() {
 function renderPlanSidebar() {
   // Player panel: clickable unit cards
   const pl = document.getElementById('deploy-player-units');
-  pl.innerHTML = '<div class="sidebar-label" style="margin-bottom:4px">Кликни отряд для выбора</div>';
+  pl.innerHTML = '<div class="sidebar-label" style="margin-bottom:4px">Click squad to select</div>';
   G.squads.filter(s => s.isPlayer).forEach(sq => {
     const order = G.orders.find(o => o.squad === sq);
     const card = document.createElement('div');
@@ -653,7 +656,7 @@ function renderPlanSidebar() {
 
   // Bot panel: info only
   const bl = document.getElementById('deploy-bot-units');
-  bl.innerHTML = '<div class="sidebar-label" style="margin-bottom:4px">Отряды бота (цели)</div>';
+  bl.innerHTML = '<div class="sidebar-label" style="margin-bottom:4px">Bot squads (targets)</div>';
   G.squads.filter(s => !s.isPlayer).forEach(sq => {
     const card = document.createElement('div');
     card.className = 'unit-card';
@@ -723,39 +726,82 @@ function setOrder(sq, order) {
 // ═══════════════════════════════════════════════════════
 //  DRAW  (shared for placement + planning)
 // ═══════════════════════════════════════════════════════
+function drawBattlefield(ctx, sz) {
+  // Base ground — dark earth
+  const ground = ctx.createLinearGradient(0, 0, 0, sz);
+  ground.addColorStop(0,   '#0e0b07');
+  ground.addColorStop(0.3, '#100d08');
+  ground.addColorStop(0.5, '#0d0b06');
+  ground.addColorStop(0.7, '#100d08');
+  ground.addColorStop(1,   '#0e0b07');
+  ctx.fillStyle = ground;
+  ctx.fillRect(0, 0, sz, sz);
+
+  // Dirt patches — subtle noise texture
+  ctx.globalAlpha = 0.025;
+  for (let i = 0; i < 60; i++) {
+    const px = (Math.sin(i * 137.5) * 0.5 + 0.5) * sz;
+    const py = (Math.cos(i * 97.3)  * 0.5 + 0.5) * sz;
+    const pr = 12 + (i % 7) * 6;
+    const grad = ctx.createRadialGradient(px, py, 0, px, py, pr);
+    grad.addColorStop(0, '#6b5a3a');
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI*2); ctx.fill();
+  }
+  ctx.globalAlpha = 1;
+
+  // Zone tints
+  const isPlanning = G.phase === 'planning';
+  ctx.fillStyle = 'rgba(139,30,20,0.07)';
+  ctx.fillRect(0, 0, sz, isPlanning ? sz/2 : CELL*14);
+  ctx.fillStyle = 'rgba(26,58,110,0.07)';
+  ctx.fillRect(0, isPlanning ? sz/2 : CELL*(GRID-14), sz, isPlanning ? sz/2 : CELL*14);
+
+  // Fine grid lines
+  ctx.strokeStyle = 'rgba(100,80,40,0.08)'; ctx.lineWidth = 0.5;
+  for (let i = 0; i <= GRID; i++) {
+    ctx.beginPath(); ctx.moveTo(i*CELL, 0);   ctx.lineTo(i*CELL, sz);  ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, i*CELL);   ctx.lineTo(sz, i*CELL);  ctx.stroke();
+  }
+
+  // Mid line — battle line
+  ctx.save();
+  ctx.strokeStyle = 'rgba(180,130,50,0.3)'; ctx.lineWidth = 1.5;
+  ctx.setLineDash([8, 6]);
+  ctx.beginPath(); ctx.moveTo(0, sz/2); ctx.lineTo(sz, sz/2); ctx.stroke();
+  ctx.setLineDash([]);
+  // Center diamond ornament
+  const cx = sz/2, cy = sz/2, d = CELL * 0.7;
+  ctx.strokeStyle = 'rgba(180,130,50,0.5)'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy-d); ctx.lineTo(cx+d, cy);
+  ctx.lineTo(cx, cy+d); ctx.lineTo(cx-d, cy);
+  ctx.closePath(); ctx.stroke();
+  ctx.restore();
+
+  // Vignette
+  const vig = ctx.createRadialGradient(sz/2, sz/2, sz*0.3, sz/2, sz/2, sz*0.75);
+  vig.addColorStop(0, 'transparent');
+  vig.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = vig;
+  ctx.fillRect(0, 0, sz, sz);
+}
+
 function draw() {
   if (!ctx) return;
   const sz = canvas.width;
   ctx.clearRect(0, 0, sz, sz);
-  ctx.fillStyle = '#0d0f1a';
-  ctx.fillRect(0, 0, sz, sz);
-
-  // Zone tints
-  const isPlanning = G.phase === 'planning';
-  ctx.fillStyle = 'rgba(229,57,53,0.07)';
-  ctx.fillRect(0, 0, sz, isPlanning ? sz/2 : CELL*14);
-  ctx.fillStyle = 'rgba(41,121,255,0.07)';
-  ctx.fillRect(0, isPlanning ? sz/2 : CELL*(GRID-14), sz,
-                  isPlanning ? sz/2 : CELL*14);
-
-  // Grid
-  ctx.strokeStyle = '#1a1e33'; ctx.lineWidth = 0.5;
-  for (let i = 0; i <= GRID; i++) {
-    ctx.beginPath(); ctx.moveTo(i*CELL,0);  ctx.lineTo(i*CELL,sz);  ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0,i*CELL);  ctx.lineTo(sz,i*CELL);  ctx.stroke();
-  }
-  // Mid line
-  ctx.strokeStyle = '#2a2f4a'; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(0,sz/2); ctx.lineTo(sz,sz/2); ctx.stroke();
+  drawBattlefield(ctx, sz);
 
   // Zone labels (placement only)
   if (G.phase === 'placement') {
     ctx.textAlign = 'center';
-    ctx.font = `bold ${Math.round(CELL*0.65)}px sans-serif`;
-    ctx.fillStyle = 'rgba(229,57,53,0.22)';
-    ctx.fillText('ЗОНА БОТА', sz/2, CELL*7);
-    ctx.fillStyle = 'rgba(41,121,255,0.22)';
-    ctx.fillText('ТВОЯ ЗОНА', sz/2, CELL*(GRID-7));
+    ctx.font = `700 ${Math.round(CELL*0.55)}px 'Cinzel', serif`;
+    ctx.fillStyle = 'rgba(192,57,43,0.2)';
+    ctx.fillText('ЗОНА ПРОТИВНИКА', sz/2, CELL*6.5);
+    ctx.fillStyle = 'rgba(46,95,168,0.2)';
+    ctx.fillText('ВАША ЗОНА', sz/2, CELL*(GRID-6.5));
   }
 
   // Planning: draw order arrows
@@ -765,9 +811,9 @@ function draw() {
       const fromX = sq.cx() * CELL, fromY = sq.cy() * CELL;
       if (o.type === 'move') {
         const toX = (o.tx + SQUAD_COLS/2) * CELL, toY = (o.ty + 0.5) * CELL;
-        drawArrowLine(ctx, fromX, fromY, toX, toY, '#f5a623', 2, [5,4]);
+        drawArrowLine(ctx, fromX, fromY, toX, toY, '#c9973a', 2, [5,4]);
         // Destination ghost
-        ctx.strokeStyle = 'rgba(245,166,35,0.4)'; ctx.lineWidth = 1;
+        ctx.strokeStyle = 'rgba(201,151,58,0.35)'; ctx.lineWidth = 1;
         ctx.strokeRect(o.tx*CELL+2, o.ty*CELL+2, SQUAD_COLS*CELL-4, CELL-4);
       } else {
         const target = G.squads.find(s => s.id === o.targetId);
@@ -1069,7 +1115,7 @@ function moveTo(sq, tx, ty, dt) {
   sq.x = Math.max(0, Math.min(GRID-SQUAD_COLS, sq.x));
   sq.y = Math.max(0, Math.min(GRID-1, sq.y));
 
-  // Дым от копыт конницы
+  // Smoke from cavalry hooves
   const isCav = sq.type === 'Cavalry' || sq.type === 'HorseArcher' || sq.type === 'Chariot';
   if (isCav && d > 0.1) {
     sq._smokeTimer = (sq._smokeTimer || 0) + dt;
@@ -1095,10 +1141,10 @@ function doAttack(sq) {
       tx:t.cx()*CELL,  ty:t.cy()*CELL,
       progress:0, color: sq.isPlayer ? '#5c9eff':'#ff6f6b',
     });
-    // Звук стрелы (не каждый раз, чтоб не забивать)
+    // Arrow sound (not every time)
     if (Math.random() < 0.4) playSound('arrow');
   } else {
-    // Звук удара мечом / конницы
+    // Sword / cavalry strike sound
     const isCav = sq.type === 'Cavalry' || sq.type === 'HorseArcher' || sq.type === 'Chariot' || sq.type === 'WarElephant';
     if (Math.random() < 0.5) playSound(isCav ? 'cavalry' : 'sword');
   }
@@ -1158,29 +1204,24 @@ function runBotAI() {
 // ── DRAW SIMULATION ────────────────────────────────────
 function drawSim(remaining) {
   const sz = canvas.width;
-  ctx.clearRect(0,0,sz,sz);
-  ctx.fillStyle='#0d0f1a'; ctx.fillRect(0,0,sz,sz);
+  ctx.clearRect(0, 0, sz, sz);
 
-  ctx.fillStyle='rgba(229,57,53,0.04)';  ctx.fillRect(0,0,sz,sz/2);
-  ctx.fillStyle='rgba(41,121,255,0.04)'; ctx.fillRect(0,sz/2,sz,sz/2);
+  // Battlefield
+  drawBattlefield(ctx, sz);
 
-  ctx.strokeStyle='#141728'; ctx.lineWidth=0.5;
-  for (let i=0;i<=GRID;i++) {
-    ctx.beginPath(); ctx.moveTo(i*CELL,0); ctx.lineTo(i*CELL,sz); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(0,i*CELL); ctx.lineTo(sz,i*CELL); ctx.stroke();
-  }
-  ctx.strokeStyle='#2a2f4a'; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(0,sz/2); ctx.lineTo(sz,sz/2); ctx.stroke();
+  // Zone tints (battle)
+  ctx.fillStyle = 'rgba(139,30,20,0.05)';  ctx.fillRect(0, 0, sz, sz/2);
+  ctx.fillStyle = 'rgba(26,58,110,0.05)';  ctx.fillRect(0, sz/2, sz, sz/2);
 
-  // Attack lines
-  ctx.setLineDash([3,5]);
-  G.squads.forEach(sq=>{
-    if (!sq.alive||!sq.target?.alive) return;
+  // Attack lines — golden threads
+  ctx.setLineDash([3, 5]);
+  G.squads.forEach(sq => {
+    if (!sq.alive || !sq.target?.alive) return;
     ctx.beginPath();
     ctx.moveTo(sq.cx()*CELL, sq.cy()*CELL);
     ctx.lineTo(sq.target.cx()*CELL, sq.target.cy()*CELL);
-    ctx.strokeStyle=sq.isPlayer?'rgba(92,158,255,0.18)':'rgba(255,100,100,0.18)';
-    ctx.lineWidth=1; ctx.stroke();
+    ctx.strokeStyle = sq.isPlayer ? 'rgba(92,158,255,0.12)' : 'rgba(224,96,96,0.12)';
+    ctx.lineWidth = 1; ctx.stroke();
   });
   ctx.setLineDash([]);
 
@@ -1197,95 +1238,207 @@ function drawSim(remaining) {
     ctx.restore();
   }
 
-  // Selected squad ring
+  // Selected squad ring — bronze Total War marker
   if (G.simSelected?.alive) {
     const sq = G.simSelected;
+    const rx = sq.cx() * CELL, ry = sq.cy() * CELL;
+    const rr = SQUAD_COLS * CELL * 0.82;
+    // Rotating arc
+    const rot = (performance.now() * 0.001) % (Math.PI * 2);
     ctx.beginPath();
-    ctx.arc(sq.cx()*CELL, sq.cy()*CELL, SQUAD_COLS*CELL*0.75, 0, Math.PI*2);
-    ctx.strokeStyle='rgba(245,166,35,0.7)'; ctx.lineWidth=2;
-    ctx.shadowColor='#f5a623'; ctx.shadowBlur=10;
+    ctx.arc(rx, ry, rr, rot, rot + Math.PI * 1.5);
+    ctx.strokeStyle = 'rgba(201,151,58,0.8)'; ctx.lineWidth = 1.5;
+    ctx.shadowColor = 'rgba(201,151,58,0.5)'; ctx.shadowBlur = 8;
     ctx.stroke();
-    ctx.shadowBlur=0;
+    ctx.shadowBlur = 0;
+    // Corner ticks
+    for (let i = 0; i < 4; i++) {
+      const a = rot + i * Math.PI/2;
+      ctx.beginPath();
+      ctx.arc(rx, ry, rr, a - 0.15, a + 0.15);
+      ctx.strokeStyle = '#e8b96a'; ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
   }
 
-  G.arrows.forEach(a=>{
-    const cx=a.x+(a.tx-a.x)*a.progress;
-    const cy=a.y+(a.ty-a.y)*a.progress;
+  G.arrows.forEach(a => {
+    const cx = a.x + (a.tx - a.x) * a.progress;
+    const cy = a.y + (a.ty - a.y) * a.progress;
+    const angle = Math.atan2(a.ty - a.y, a.tx - a.x);
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+    // Arrow shaft
+    ctx.strokeStyle = a.color; ctx.lineWidth = 1.5;
+    ctx.shadowColor = a.color; ctx.shadowBlur = 4;
+    ctx.beginPath(); ctx.moveTo(-CELL*0.3, 0); ctx.lineTo(CELL*0.3, 0); ctx.stroke();
+    // Arrowhead
+    ctx.fillStyle = a.color;
     ctx.beginPath();
-    ctx.arc(cx,cy,Math.max(2,CELL*0.09),0,Math.PI*2);
-    ctx.fillStyle=a.color; ctx.fill();
+    ctx.moveTo(CELL*0.3, 0); ctx.lineTo(CELL*0.15, -CELL*0.08); ctx.lineTo(CELL*0.15, CELL*0.08);
+    ctx.closePath(); ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
   });
 
   // Частицы: дым, конфетти
   drawParticles(ctx);
 
-  // Timer bar
-  const barH = Math.max(5, CELL*0.18);
+  // Timer bar — Total War style
+  const barH = Math.max(6, CELL*0.2);
   const pct  = Math.max(0, remaining/BATTLE_DURATION);
   const secs = Math.ceil(remaining/1000);
-  ctx.fillStyle='#1c2038'; ctx.fillRect(0,0,sz,barH);
-  ctx.fillStyle = pct>.5?'#00c853':pct>.25?'#ffa726':'#ff1744';
-  ctx.fillRect(0,0,sz*pct,barH);
-  const fs=Math.max(10,barH*1.6);
-  ctx.font=`bold ${fs}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.shadowColor='#000'; ctx.shadowBlur=4;
-  ctx.fillStyle=pct<.25?'#ff1744':'#fff';
-  ctx.fillText(`${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`,sz/2,barH*1.4);
-  ctx.shadowBlur=0;
+
+  // Bar background
+  ctx.fillStyle = 'rgba(0,0,0,0.7)';
+  ctx.fillRect(0, 0, sz, barH + 4);
+  // Bronze border
+  ctx.fillStyle = 'rgba(140,100,20,0.4)';
+  ctx.fillRect(0, barH + 3, sz, 1);
+
+  // Timer fill with gradient
+  const timerGrad = ctx.createLinearGradient(0, 0, sz*pct, 0);
+  if (pct > 0.5) {
+    timerGrad.addColorStop(0, 'rgba(80,150,50,0.7)');
+    timerGrad.addColorStop(1, 'rgba(120,190,80,0.7)');
+  } else if (pct > 0.25) {
+    timerGrad.addColorStop(0, 'rgba(160,100,20,0.7)');
+    timerGrad.addColorStop(1, 'rgba(220,150,30,0.7)');
+  } else {
+    timerGrad.addColorStop(0, 'rgba(140,20,20,0.8)');
+    timerGrad.addColorStop(1, 'rgba(200,40,40,0.8)');
+  }
+  ctx.fillStyle = timerGrad;
+  ctx.fillRect(0, 0, sz*pct, barH);
+
+  // Timer text
+  const timeStr = `${Math.floor(secs/60)}:${String(secs%60).padStart(2,'0')}`;
+  ctx.font = `700 ${Math.max(10, barH*1.5)}px 'Cinzel', serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+  ctx.shadowColor = '#000'; ctx.shadowBlur = 6;
+  ctx.fillStyle = pct < 0.25 ? '#e05050' : '#c9973a';
+  ctx.fillText(timeStr, sz/2, 1);
+  ctx.shadowBlur = 0;
 
   // Pause overlay
   if (G.paused) {
-    ctx.fillStyle='rgba(0,0,0,0.5)'; ctx.fillRect(0,0,sz,sz);
-    ctx.font=`bold ${Math.round(sz*0.05)}px sans-serif`;
-    ctx.textAlign='center'; ctx.fillStyle='#ffa726';
-    ctx.fillText('⏸ ПАУЗА',sz/2,sz/2);
-    ctx.font=`${Math.round(sz*0.025)}px sans-serif`;
-    ctx.fillStyle='rgba(255,255,255,0.5)';
-    ctx.fillText('ПРОБЕЛ — продолжить',sz/2,sz/2+sz*0.065);
+    ctx.fillStyle = 'rgba(0,0,0,0.65)';
+    ctx.fillRect(0, 0, sz, sz);
+    // Pause box
+    const bw = sz * 0.36, bh = sz * 0.14;
+    const bx = (sz - bw) / 2, by = sz/2 - bh/2;
+    ctx.fillStyle = 'rgba(12,10,7,0.95)';
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeStyle = 'rgba(180,130,50,0.6)'; ctx.lineWidth = 1.5;
+    ctx.strokeRect(bx, by, bw, bh);
+    ctx.strokeStyle = 'rgba(180,130,50,0.2)'; ctx.lineWidth = 1;
+    ctx.strokeRect(bx+4, by+4, bw-8, bh-8);
+    ctx.font = `700 ${Math.round(sz*0.04)}px 'Cinzel', serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#c9973a';
+    ctx.shadowColor = 'rgba(201,151,58,0.5)'; ctx.shadowBlur = 12;
+    ctx.fillText('⏸  PAUSA', sz/2, sz/2 - sz*0.02);
+    ctx.shadowBlur = 0;
+    ctx.font = `${Math.round(sz*0.02)}px 'Cinzel', serif`;
+    ctx.fillStyle = 'rgba(180,160,120,0.5)';
+    ctx.fillText('SPATIUM — CONTINUA', sz/2, sz/2 + sz*0.04);
   }
 }
 
-// ── SQUAD DRAW (shared) ────────────────────────────────
+// ── SQUAD DRAW — Total War style ──────────────────────
 function drawSquad(ctx, sq, selected) {
   if (!sq.alive) return;
 
-  // Победный прыжок
+  // Victory bounce
   let bounceY = 0;
   if (victoryAnim) {
     const elapsed = performance.now() - victoryAnim.startTime;
     if (victoryAnim.squads.includes(sq)) {
-      // Каждый отряд прыгает со своим смещением по фазе
       const phase = victoryAnim.squads.indexOf(sq) * 0.7;
       bounceY = -Math.abs(Math.sin((elapsed * 0.006) + phase)) * CELL * 0.6;
     }
   }
 
-  const x=sq.x*CELL, y=sq.y*CELL + bounceY, w=SQUAD_COLS*CELL, h=CELL;
+  const x = sq.x * CELL, y = sq.y * CELL + bounceY;
+  const w = SQUAD_COLS * CELL, h = CELL;
+  const isP = sq.isPlayer;
 
-  ctx.fillStyle = sq.isPlayer?'rgba(41,121,255,0.22)':'rgba(229,57,53,0.22)';
-  ctx.fillRect(x+1,y+1,w-2,h-2);
+  // Shadow
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.7)';
+  ctx.shadowBlur  = 6;
+  ctx.shadowOffsetY = 2;
 
-  ctx.strokeStyle = selected?'#f5a623': sq.isPlayer?'#2979ff':'#e53935';
-  ctx.lineWidth   = selected?2.5:1.2;
-  if (selected) { ctx.shadowColor='#f5a623'; ctx.shadowBlur=12; }
-  // Победная подсветка
-  if (victoryAnim?.squads.includes(sq)) {
-    ctx.shadowColor='#f5c842'; ctx.shadowBlur=18;
-    ctx.strokeStyle='#f5c842'; ctx.lineWidth=2;
+  // Main body gradient
+  const bodyGrad = ctx.createLinearGradient(x, y, x, y + h);
+  if (isP) {
+    bodyGrad.addColorStop(0, selected ? 'rgba(60,100,180,0.85)' : 'rgba(30,60,130,0.75)');
+    bodyGrad.addColorStop(1, selected ? 'rgba(20,50,110,0.9)'   : 'rgba(15,35,90,0.85)');
+  } else {
+    bodyGrad.addColorStop(0, selected ? 'rgba(180,50,40,0.85)'  : 'rgba(130,25,20,0.75)');
+    bodyGrad.addColorStop(1, selected ? 'rgba(110,20,15,0.9)'   : 'rgba(80,12,10,0.85)');
   }
-  ctx.strokeRect(x+1,y+1,w-2,h-2);
-  ctx.shadowBlur=0;
+  ctx.fillStyle = bodyGrad;
+  ctx.fillRect(x + 1, y + 1, w - 2, h - 2);
+  ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
 
-  const fs=Math.max(9,CELL*0.38);
-  ctx.font=`${fs}px sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
-  for (let c=0;c<SQUAD_COLS;c++) for (let r=0;r<2;r++)
-    ctx.fillText(sq.symbol, x+c*CELL+CELL*.5, y+r*(CELL*.5)+CELL*.25);
+  // Border
+  if (selected || victoryAnim?.squads.includes(sq)) {
+    ctx.strokeStyle = selected ? '#c9973a' : '#e8b96a';
+    ctx.lineWidth   = 2;
+    ctx.shadowColor = selected ? 'rgba(201,151,58,0.8)' : 'rgba(232,185,106,0.6)';
+    ctx.shadowBlur  = selected ? 14 : 18;
+  } else {
+    ctx.strokeStyle = isP ? 'rgba(92,158,255,0.7)' : 'rgba(224,96,96,0.7)';
+    ctx.lineWidth   = 1;
+  }
+  ctx.strokeRect(x + 1, y + 1, w - 2, h - 2);
+  ctx.shadowBlur = 0;
 
-  const barH=Math.max(2,CELL*.13), barY=y-barH-1;
-  const hp=Math.max(0,sq.hp/sq.maxHp);
-  ctx.fillStyle='#0d0f1a'; ctx.fillRect(x+1,barY,w-2,barH);
-  ctx.fillStyle=hp>.6?'#00c853':hp>.3?'#ffa726':'#ff1744';
-  ctx.fillRect(x+1,barY,(w-2)*hp,barH);
+  // Inner highlight line
+  ctx.strokeStyle = isP ? 'rgba(92,158,255,0.2)' : 'rgba(224,96,96,0.2)';
+  ctx.lineWidth = 0.5;
+  ctx.strokeRect(x + 3, y + 3, w - 6, h - 6);
+
+  // Unit symbols — crisp centered
+  const fs = Math.max(9, CELL * 0.36);
+  ctx.font = `${fs}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 3;
+  ctx.fillStyle = '#fff';
+  for (let c = 0; c < SQUAD_COLS; c++) {
+    for (let r = 0; r < 2; r++) {
+      ctx.fillText(sq.symbol,
+        x + c * CELL + CELL * 0.5,
+        y + r * (CELL * 0.5) + CELL * 0.25);
+    }
+  }
+  ctx.shadowBlur = 0;
+
+  // HP bar — below unit
+  const barH = Math.max(2, CELL * 0.12);
+  const barY  = y - barH - 2;
+  const hp    = Math.max(0, sq.hp / sq.maxHp);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.6)';
+  ctx.fillRect(x + 1, barY, w - 2, barH);
+
+  const hpGrad = ctx.createLinearGradient(x, 0, x + (w-2)*hp, 0);
+  if (hp > 0.6) {
+    hpGrad.addColorStop(0, '#2a6a2a'); hpGrad.addColorStop(1, '#4caf50');
+  } else if (hp > 0.3) {
+    hpGrad.addColorStop(0, '#8a5a00'); hpGrad.addColorStop(1, '#ffa726');
+  } else {
+    hpGrad.addColorStop(0, '#7a1010'); hpGrad.addColorStop(1, '#e53935');
+  }
+  ctx.fillStyle = hpGrad;
+  ctx.fillRect(x + 1, barY, (w - 2) * hp, barH);
+
+  // HP bar border
+  ctx.strokeStyle = 'rgba(100,80,40,0.4)'; ctx.lineWidth = 0.5;
+  ctx.strokeRect(x + 1, barY, w - 2, barH);
+
+  ctx.restore();
 }
 
 // ── WIN / END ──────────────────────────────────────────
@@ -1326,28 +1479,30 @@ function endBattle(winner) {
 
     let icon,title,sub;
     if (timeout) {
-      if (dw==='draw') { icon='⚖';title='НИЧЬЯ';sub='Время вышло — силы равны!'; }
-      else if (win)    { icon='🏆';title='ПОБЕДА';sub='Время вышло — у тебя больше отрядов!'; }
-      else             { icon='💀';title='ПОРАЖЕНИЕ';sub='Время вышло — у бота больше отрядов.'; }
+      if (dw==='draw') { icon='⚖'; title='НИЧЬЯ';   sub='Время вышло — силы равны.'; }
+      else if (win)    { icon='🏆'; title='ПОБЕДА';   sub='Время вышло — твои войска сильнее!'; }
+      else             { icon='💀'; title='ПОРАЖЕНИЕ';  sub='Время вышло — враг оказался сильнее.'; }
     } else {
-      icon=win?'🏆':'💀'; title=win?'ПОБЕДА':'ПОРАЖЕНИЕ';
-      sub=win?'Отличный план, командир!':'Бот оказался хитрее. Пересмотри план!';
+      icon=win?'🏆':'💀';
+      title=win?'ПОБЕДА':'ПОРАЖЕНИЕ';
+      sub=win?'Dux optime! Hostis in fugam versus est.':'Hostis callidior fuit. Recogita consilium!';
     }
     document.getElementById('result-icon').textContent=icon;
     document.getElementById('result-title').textContent=title;
+    document.getElementById('result-title').className='result-title' + (win?'':' defeat');
     document.getElementById('result-sub').textContent=sub;
     document.getElementById('result-card').style.borderColor=
-      win?'#f5a623':dw==='draw'?'#8892b0':'#e53935';
+      win?'var(--bronze)':dw==='draw'?'#5a5040':'var(--blood-l)';
     const s=Math.round(G.battleTimer/1000);
     document.getElementById('result-stats').innerHTML=`
-      <div class="stat-row"><span>Длительность</span><span>${Math.floor(s/60)}м ${s%60}с</span></div>
-      <div class="stat-row"><span>Уничтожено врагов</span><span>${G.kills.player}</span></div>
-      <div class="stat-row"><span>Потеряно</span><span>${G.kills.bot}</span></div>
-      <div class="stat-row"><span>Выжило игрока</span><span>${pa}</span></div>
-      <div class="stat-row"><span>Выжило бота</span><span>${ba}</span></div>
-      <div class="stat-row"><span>Твоя фракция</span>
+      <div class="stat-row"><span>Duration</span><span>${Math.floor(s/60)}м ${s%60}с</span></div>
+      <div class="stat-row"><span>Enemies destroyed</span><span>${G.kills.player}</span></div>
+      <div class="stat-row"><span>Losses</span><span>${G.kills.bot}</span></div>
+      <div class="stat-row"><span>Player survived</span><span>${pa}</span></div>
+      <div class="stat-row"><span>Bot survived</span><span>${ba}</span></div>
+      <div class="stat-row"><span>Player faction</span>
         <span>${FACTIONS[G.playerFaction].icon} ${FACTIONS[G.playerFaction].name}</span></div>`;
-  },500);
+  },2200);
 }
 
 // ── KEYS ───────────────────────────────────────────────
